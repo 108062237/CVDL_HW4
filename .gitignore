@@ -28,6 +28,7 @@ Thumbs.db
 # Datasets - As per assignment instructions, do not put data into submission [cite: 52]
 # This will also prevent uploading large data files to GitHub
 data/
+__MACOSX/
 dummy_dataset/ # If you created this earlier
 
 # Model checkpoints and saved models - As per assignment instructions [cite: 52]
