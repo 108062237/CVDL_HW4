@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 
 # Virtual environment folders
-# (如果您在專案目錄下創建了虛擬環境，請取消註解並填寫正確的名稱)
 # venv/
 # .venv/
 # env/
@@ -22,11 +21,11 @@ __pycache__/
 # Operating System specific files
 .DS_Store
 Thumbs.db
-__MACOSX/ # 您列出的 __MACOSX 資料夾
+__MACOSX/ # 忽略 __MACOSX 資料夾及其所有內容
 
 # Datasets and related zip files
 data/
-hw4_realse_dataset.zip # 您的資料集壓縮檔
+hw4_realse_dataset.zip # 忽略資料集壓縮檔
 
 # Model checkpoints and saved models
 *.pth
@@ -37,7 +36,6 @@ checkpoints/
 saved_models/
 
 # Output files from CodaBench submission
-# (如果 example_img2npz.py 的輸出是 pred.npz，且您不想追蹤它)
 # pred.npz
 # output/
 # predictions/
@@ -71,5 +69,3 @@ ipython_config.py
 # Any local configuration files (if you have them)
 # local_settings.py
 # config.ini
-
-*.zip
