@@ -1,0 +1,76 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment folders
+# Add your specific virtual environment folder name if different
+# For example, if you use 'venv' or '.venv'
+venv/
+.venv/
+env/
+.env/
+ENV/
+# Conda environments (if you create one in the project directory)
+conda_env/
+.conda/
+
+# IDE and editor specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Operating System specific files
+.DS_Store
+Thumbs.db
+
+# Datasets - As per assignment instructions, do not put data into submission [cite: 52]
+# This will also prevent uploading large data files to GitHub
+data/
+dummy_dataset/ # If you created this earlier
+
+# Model checkpoints and saved models - As per assignment instructions [cite: 52]
+# Your script currently saves to 'best_promptir_model_zh.pth'
+*.pth
+*.pt
+*.onnx
+*.pb
+checkpoints/
+saved_models/
+
+# Output files from CodaBench submission
+# The submission file itself is pred.npz, you might generate it in a specific folder
+output/
+predictions/
+pred.npz # Usually you generate this and submit, no need to track its changes constantly in git
+
+# Log files
+*.log
+logs/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Coverage reports
+.coverage
+coverage.xml
+htmlcov/
+
+# IPython files
+profile_default/
+ipython_config.py
+
+# Any local configuration files (if you have them)
+local_settings.py
+config.ini
