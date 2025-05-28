@@ -4,70 +4,92 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
+import numpy as np
+import random
+# In your dataloader.py
+
 class ImageRestorationDataset(Dataset):
-    """
-    Custom Dataset for the Image Restoration task.
-    It loads pairs of degraded (rain/snow) and corresponding clean images.
-    """
-    def __init__(self, root_dir, transform=None):
-        """
-        Args:
-            root_dir (string): Directory with all the images (e.g., 'data/train/').
-                               It should contain 'degraded' and 'clean' subfolders.
-            transform (callable, optional): Optional transform to be applied on a sample.
-        """
-        self.root_dir = root_dir
-        self.degraded_dir = os.path.join(root_dir, 'degraded')
-        self.clean_dir = os.path.join(root_dir, 'clean')
+    def __init__(self, root_dir=None, image_pairs=None, transform=None):
         self.transform = transform
-
         self.image_pairs = []
-        
-        if not os.path.isdir(self.degraded_dir):
-            print(f"Error: Degraded images directory not found: {self.degraded_dir}")
-            return
-        if not os.path.isdir(self.clean_dir):
-            print(f"Error: Clean images directory not found: {self.clean_dir}")
-            return
 
-        degraded_files = sorted([f for f in os.listdir(self.degraded_dir) if f.endswith(('.png', '.jpg', '.jpeg'))])
-
-        for degraded_file_name in degraded_files:
-            clean_file_name = ""
-            if degraded_file_name.startswith('rain-'):
-                clean_file_name = degraded_file_name.replace('rain-', 'rain_clean-')
-            elif degraded_file_name.startswith('snow-'):
-                clean_file_name = degraded_file_name.replace('snow-', 'snow_clean-')
-            
-            if clean_file_name:
-                degraded_img_path = os.path.join(self.degraded_dir, degraded_file_name)
-                clean_img_path = os.path.join(self.clean_dir, clean_file_name)
-
-                if os.path.exists(degraded_img_path) and os.path.exists(clean_img_path):
-                    self.image_pairs.append((degraded_img_path, clean_img_path))
-                else:
-                    if not os.path.exists(degraded_img_path):
-                        print(f"Warning: Degraded image file not found: {degraded_img_path}")
-                    if not os.path.exists(clean_img_path):
-                        print(f"Warning: Corresponding clean image file not found: {clean_img_path} for {degraded_file_name}")
-            # else:
-            #     print(f"Warning: Could not determine clean file name for {degraded_file_name}")
-
-
-    def __len__(self):
-        return len(self.image_pairs)
+        if image_pairs: # If a list of pairs is provided, use it
+            self.image_pairs = image_pairs
+        elif root_dir: # Otherwise, load from root_dir (your existing logic)
+            self.degraded_dir = os.path.join(root_dir, 'degraded')
+            self.clean_dir = os.path.join(root_dir, 'clean')
+            # 例如:
+            if not os.path.isdir(self.degraded_dir) or not os.path.isdir(self.clean_dir):
+                # Handle error: directory not found
+                raise FileNotFoundError(f"Degraded or Clean directory not found in {root_dir}")
+            degraded_files = sorted([f for f in os.listdir(self.degraded_dir) if f.endswith(('.png', '.jpg', '.jpeg'))])
+            for degraded_file_name in degraded_files:
+                clean_file_name = ""
+                if degraded_file_name.startswith('rain-'):
+                    clean_file_name = degraded_file_name.replace('rain-', 'rain_clean-')
+                elif degraded_file_name.startswith('snow-'):
+                    clean_file_name = degraded_file_name.replace('snow-', 'snow_clean-')
+                if clean_file_name:
+                    degraded_img_path = os.path.join(self.degraded_dir, degraded_file_name)
+                    clean_img_path = os.path.join(self.clean_dir, clean_file_name)
+                    if os.path.exists(degraded_img_path) and os.path.exists(clean_img_path):
+                        self.image_pairs.append((degraded_img_path, clean_img_path))
+        else:
+            raise ValueError("Either root_dir or image_pairs must be provided to ImageRestorationDataset.")
 
     def __getitem__(self, idx):
         degraded_img_path, clean_img_path = self.image_pairs[idx]
+        try:
+            degraded_image_pil = Image.open(degraded_img_path).convert('RGB')
+            clean_image_pil = Image.open(clean_img_path).convert('RGB')
+        except Exception as e:
+            print(f"Error loading image pair: {degraded_img_path}, {clean_img_path}. Error: {e}")
+            # Return a dummy pair or raise error, depending on desired handling
+            # For now, let's assume successful loading
+            # You might want to return specific error handling here.
+            # For robustness, one might skip this sample or return placeholder tensors.
+            # This is a simplified error path.
+            return torch.zeros(3, 64, 64), torch.zeros(3, 64, 64)
 
-        degraded_image = Image.open(degraded_img_path).convert('RGB')
-        clean_image = Image.open(clean_img_path).convert('RGB')
 
+        # --- Crucial for paired geometric augmentations ---
+        # If self.transform includes geometric transforms (like RandomRotation, Flip)
+        # they need to be applied consistently to both images.
+        # Simplest way if transform applies to one image:
+        # 1. Get current random state
+        # 2. Apply transform to image1
+        # 3. Restore random state
+        # 4. Apply transform to image2 (it will get the same geometric transform)
+        # However, torchvision transforms like RandomHorizontalFlip handle this internally
+        # if you pass them a PIL image. For sequences of transforms, it's more complex.
+        # A common robust approach is to make self.transform expect a tuple/list of images
+        # or to encapsulate this logic within the transform itself.
+
+        # For most torchvision transforms that take PIL:
         if self.transform:
-            degraded_image = self.transform(degraded_image)
-            clean_image = self.transform(clean_image)
+            # Create a seed for consistent geometric augmentations if any
+            # This is a more robust way for paired transforms
+            seed = np.random.randint(2147483647) # Make a seed
+
+            random.seed(seed) # Apply to python's random module
+            torch.manual_seed(seed) # Apply to torch's random module
+            degraded_image = self.transform(degraded_image_pil)
+
+            random.seed(seed) # Apply to python's random module
+            torch.manual_seed(seed) # Apply to torch's random module
+            # For clean image, usually only ToTensor is needed if it's for target
+            # But if geometric transforms are in self.transform, they must match.
+            # If self.transform is train_transform, clean_image also gets augmented.
+            # This is okay if the loss can handle it (L1, SSIM can).
+            clean_image = self.transform(clean_image_pil)
+        else: # Fallback if no transform (should at least have ToTensor)
+            degraded_image = transforms.ToTensor()(degraded_image_pil)
+            clean_image = transforms.ToTensor()(clean_image_pil)
 
         return degraded_image, clean_image
+
+    def __len__(self):
+        return len(self.image_pairs)
 
 if __name__ == '__main__':
     # Define transformations
@@ -107,7 +129,7 @@ if __name__ == '__main__':
             print(f"Dataset size: {len(image_dataset)} samples.")
 
             batch_size = 4 
-            dataloader = DataLoader(image_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+            dataloader = DataLoader(image_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
 
             print(f"\nIterating through DataLoader (first few batches with batch_size={batch_size}):")
             for i, (degraded_batch, clean_batch) in enumerate(dataloader):

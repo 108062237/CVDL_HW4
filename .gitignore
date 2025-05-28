@@ -1,71 +1,58 @@
-# Python cache files
+# Python
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
 
-# Virtual environment folders
-# venv/
-# .venv/
-# env/
-# .env/
-# ENV/
-# conda_env/
-# .conda/
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+VENV/
+myenv/ # Or whatever you name your virtual environment folder
 
-# IDE and editor specific files
+# IDE / Editor specific
 .vscode/
 .idea/
-*.sublime-project
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 *.sublime-workspace
 
-# Operating System specific files
-.DS_Store
-Thumbs.db
-__MACOSX/ # 忽略 __MACOSX 資料夾及其所有內容
+# Data files - CRITICAL for this assignment
+data/train/
+data/test/
+# If you create other large dataset folders, add them here too.
+# For example, if you store a copy of the full dataset zip:
+# *.zip 
+# (Be careful with generic .zip if you have other small zips you want to commit)
 
-# Datasets and related zip files
-data/
-hw4_realse_dataset.zip # 忽略資料集壓縮檔
-
-# Model checkpoints and saved models
-*.pth
-*.pt
-*.onnx
-*.pb
-checkpoints/
-saved_models/
-
-# Output files from CodaBench submission
-# pred.npz
-# output/
-# predictions/
+# Model weights (if they are large and you don't want them in the repo)
+# You should provide a link to download them in your README if they are not in the repo.
+weight/*.pth
+# Or if you have many weight folders:
+# weight*/
+# *.pth
 
 # Log files
 *.log
-logs/
+logs/ # If you save logs in a 'logs' directory
+
+# NPZ output files (usually generated and not committed)
+pred.npz
+pred_*.npz
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints
 
-# Build artifacts
-dist/
-build/
-*.egg-info/
-
-# Temporary files
-*.tmp
-*.swp
-*~
-
-# Coverage reports
-.coverage
-coverage.xml
-htmlcov/
-
-# IPython files
-profile_default/
-ipython_config.py
-
-# Any local configuration files (if you have them)
-# local_settings.py
-# config.ini
+# OS generated files
+.DS_Store
+Thumbs.db
